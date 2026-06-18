@@ -1,0 +1,1 @@
+Analysiere das Projekt und erstelle ein Strukturverzeichnis in dieser AGENTS.md
