@@ -10,6 +10,7 @@ from vmbpy import VmbSystem, FrameStatus
 # Globale Variable für das aktuellste Kamerabild
 latest_frame = None
 
+
 def frame_handler(cam, stream, frame):
     """Callback-Funktion: Wird asynchron aufgerufen, sobald ein neues Bild da ist."""
     global latest_frame
