@@ -11,6 +11,13 @@ FLASK_PORT = 5000
 FLASK_DEBUG = False
 FLASK_USE_RELOADER = False  # must stay False, otherwise cameras get opened twice
 
+# --- Browser lifecycle: auto-open on start, auto-shutdown when the tab is closed -
+AUTO_OPEN_BROWSER = True
+AUTO_OPEN_BROWSER_DELAY_SECONDS = 1.0    # gives the Flask server time to start listening
+HEARTBEAT_INTERVAL_MS = 2000             # how often the browser tab pings the server
+HEARTBEAT_CHECK_INTERVAL_SECONDS = 1.0   # how often the server checks for a stale heartbeat
+HEARTBEAT_TIMEOUT_SECONDS = 6.0          # no heartbeat for this long => tab was closed
+
 # --- MJPEG video stream settings -----------------------------------------------
 JPEG_QUALITY = 90               # 0-100, passed to cv2.imencode
 MJPEG_BOUNDARY = "frame"        # multipart boundary name used by the browser stream

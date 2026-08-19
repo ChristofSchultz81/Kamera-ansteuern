@@ -102,6 +102,12 @@
         }
 
         refreshCameraList();
+
+        // Keeps the server informed that this tab is still open; the server
+        // shuts itself down once these pings stop arriving (tab closed).
+        setInterval(() => {
+            fetch('/api/heartbeat', {method: 'POST'}).catch(() => {});
+        }, {{ heartbeat_interval_ms }});
     </script>
 </body>
 </html>

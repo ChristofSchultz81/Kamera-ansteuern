@@ -10,6 +10,7 @@ import os
 import re
 import threading
 import time
+import webbrowser
 from datetime import datetime
 
 import cv2
@@ -28,6 +29,10 @@ app = Flask(__name__)
 _session_lock = threading.Lock()
 _active_driver = None
 _save_directory = os.getcwd()
+
+# Tracks the last time the browser tab pinged us, used to detect when it's closed.
+_heartbeat_lock = threading.Lock()
+_last_heartbeat_time = None
 
 
 def select_save_directory() -> str:
@@ -55,7 +60,18 @@ def sanitize_filename_label(raw_label: str) -> str:
 @app.route("/")
 def index():
     # HEADER: Renders the single-page dashboard shell (camera dropdown, video feed, controls).
-    return render_template("index.html", save_dir=_save_directory)
+    return render_template(
+        "index.html", save_dir=_save_directory, heartbeat_interval_ms=config.HEARTBEAT_INTERVAL_MS
+    )
+
+
+@app.route("/api/heartbeat", methods=["POST"])
+def api_heartbeat():
+    # HEADER: Receives a keep-alive ping from the open browser tab; used to detect when it's closed.
+    global _last_heartbeat_time
+    with _heartbeat_lock:
+        _last_heartbeat_time = time.time()
+    return jsonify(success=True)
 
 
 @app.route("/api/cameras")
@@ -191,12 +207,45 @@ def video_feed():
     )
 
 
+def _shutdown_server() -> None:
+    # HEADER: Releases the active camera driver (if any) and terminates the whole process.
+    global _active_driver
+    with _session_lock:
+        if _active_driver is not None:
+            _active_driver.close()
+            _active_driver = None
+    os._exit(0)
+
+
+def _watchdog_loop() -> None:
+    # HEADER: Background thread that shuts the server down once the browser tab stops sending heartbeats.
+    global _last_heartbeat_time
+    with _heartbeat_lock:
+        _last_heartbeat_time = time.time()  # grace period until the first heartbeat arrives
+
+    while True:
+        time.sleep(config.HEARTBEAT_CHECK_INTERVAL_SECONDS)
+        with _heartbeat_lock:
+            last = _last_heartbeat_time
+        if last is not None and (time.time() - last) > config.HEARTBEAT_TIMEOUT_SECONDS:
+            print("[INFO] Browser tab appears to be closed, shutting down...")
+            _shutdown_server()
+            return
+
+
 def main():
     # HEADER: Application entry point: asks for a save folder, then starts the Flask dev server.
     global _save_directory
     _save_directory = select_save_directory()
     print(f"[INFO] Images will be saved to: {_save_directory}")
     print(f"[INFO] Open your browser at: http://127.0.0.1:{config.FLASK_PORT}")
+
+    threading.Thread(target=_watchdog_loop, daemon=True).start()
+
+    if config.AUTO_OPEN_BROWSER:
+        url = f"http://127.0.0.1:{config.FLASK_PORT}"
+        threading.Timer(config.AUTO_OPEN_BROWSER_DELAY_SECONDS, lambda: webbrowser.open(url)).start()
+
     app.run(
         host=config.FLASK_HOST,
         port=config.FLASK_PORT,

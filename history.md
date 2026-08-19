@@ -37,3 +37,15 @@ Dieses Dokument wird **immer nur erweitert (append-only)**. Bestehende Einträge
 - Ursache 2: Selbst ohne Absturz wäre das Histogramm nie neben dem Kamerabild angezeigt worden, da `create_histogram()` eine feste Höhe (`config.HISTOGRAM_HEIGHT` = 150 px) verwendete, während `app.py` Bild und Histogramm nur dann nebeneinander legte (`cv2.hconcat`), wenn beide Bilder exakt gleich hoch waren — bei echten Kameraauflösungen praktisch nie der Fall.
 - Fix: `create_histogram()` erkennt jetzt Mono-Frames mit explizitem Einzelkanal (`shape[2] == 1`) korrekt und akzeptiert einen `height`-Parameter, um das Histogramm passend zur Höhe des jeweiligen Kamerabilds zu rendern. Neue Hilfsfunktion `ensure_bgr()` in `cameras/imaging.py` konvertiert Mono-Frames zuverlässig nach BGR, bevor sie mit dem Histogramm zusammengefügt werden. `app.py` nutzt beides jetzt konsistent, wodurch Bild und Histogramm bei jeder Kamera (mono oder Farbe, beliebige Auflösung) zuverlässig nebeneinander im Browser erscheinen.
 - Verifiziert mit synthetischen Mono-/Farb-Testbildern und live gegen die echte Allied-Vision-Kamera (Bild + Histogramm werden korrekt kombiniert und als JPEG kodiert).
+
+## 2026-08-19 — Zweite Kamera (Bresser MikroCam SP 5.0) erfolgreich angebunden
+
+- Die MikroCam SP 5.0 war zunächst nur als generisches `WinUSB`-Gerät (PnP-Klasse `USBDevice`) eingebunden und daher für DirectShow/OpenCV unsichtbar (Discovery fand nur die Laptop-Webcam).
+- Nach Installation des vom Nutzer bereitgestellten Treibers `BresserDshowMicroSetup.exe` (ein reiner DirectShow-Filter-Treiber, keine vollständige Bedienoberfläche) erscheint die Kamera als zusätzliches DirectShow-Gerät — unser bestehender generischer `OpenCVCameraDriver` erkennt sie automatisch ohne jede Codeanpassung. Das bestätigt das Treiber-Architektur-Konzept in der Praxis.
+
+## 2026-08-19 — Automatisches Öffnen des Browsers und Auto-Shutdown bei geschlossenem Tab
+
+- `app.py` öffnet beim Start automatisch den Standardbrowser mit der Dashboard-URL (`webbrowser.open`, kurze Verzögerung über `threading.Timer`, siehe `config.AUTO_OPEN_BROWSER` / `AUTO_OPEN_BROWSER_DELAY_SECONDS`).
+- Der Browser-Tab sendet alle paar Sekunden einen Heartbeat (`POST /api/heartbeat`, Intervall `config.HEARTBEAT_INTERVAL_MS`). Ein Hintergrund-Thread (`_watchdog_loop`) prüft laufend, ob der letzte Heartbeat zu lange her ist (`config.HEARTBEAT_TIMEOUT_SECONDS`); ist das der Fall (Tab/Fenster wurde geschlossen), wird die aktive Kamera sauber geschlossen und der gesamte Prozess beendet (`_shutdown_server`).
+- Ein einfacher Seiten-Refresh löst keinen Shutdown aus, da die Toleranzzeit (6s) größer ist als die Zeit bis zum nächsten Heartbeat nach einem Reload.
+- Verifiziert mit isolierten Tests: (1) ohne Heartbeats fährt der Server nach ca. 2–3s automatisch herunter, (2) mit laufenden Heartbeats bleibt er aktiv und fährt erst nach Ausbleiben der Heartbeats + Timeout herunter.

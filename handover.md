@@ -12,6 +12,8 @@ Status snapshot for whoever picks up this project next. Update this file as the 
   - `legacy/` — the three original per-camera scripts, kept for reference only, no longer maintained.
 - Allied Vision camera hardware-tested successfully: `AlliedVisionCameraDriver` opens the real camera (`DEV_1AB22C0301FB`), reads frames (2064x2464 mono), reports/reads exposure range and current value, and closes cleanly. See history.md for details and a pitfall about hung processes if `close()` isn't called after a failed `open()`.
 - Fixed: browser video feed was black for the Allied Vision camera because `create_histogram()` crashed on mono `(H, W, 1)` frames and the image/histogram height check in `app.py` almost never matched. Fixed in `cameras/imaging.py` (`ensure_bgr()` helper, `create_histogram(height=...)` parameter) and `app.py`. Verified with synthetic frames and live against the real camera.
+- Second camera (Bresser MikroCam SP 5.0) verified working through the existing generic `OpenCVCameraDriver` once its DirectShow driver was installed on the machine — no new driver code needed.
+- `app.py` now auto-opens the default browser on startup and auto-shuts-down (including releasing the active camera) once the browser tab stops sending heartbeats, i.e. when it's closed. See `config.py` (`AUTO_OPEN_BROWSER*`, `HEARTBEAT_*`).
 - Generic USB webcam driver and full end-to-end browser GUI with the Allied Vision camera still need verification (see backlog.md).
 - Git: existing `origin` remote (GitLab, HTW Berlin) untouched. A `github` remote was added and the refactor commit was pushed to `https://github.com/ChristofSchultz81/Kamera-ansteuern` (branch `main`).
 
