@@ -49,3 +49,7 @@ Dieses Dokument wird **immer nur erweitert (append-only)**. Bestehende Einträge
 - Der Browser-Tab sendet alle paar Sekunden einen Heartbeat (`POST /api/heartbeat`, Intervall `config.HEARTBEAT_INTERVAL_MS`). Ein Hintergrund-Thread (`_watchdog_loop`) prüft laufend, ob der letzte Heartbeat zu lange her ist (`config.HEARTBEAT_TIMEOUT_SECONDS`); ist das der Fall (Tab/Fenster wurde geschlossen), wird die aktive Kamera sauber geschlossen und der gesamte Prozess beendet (`_shutdown_server`).
 - Ein einfacher Seiten-Refresh löst keinen Shutdown aus, da die Toleranzzeit (6s) größer ist als die Zeit bis zum nächsten Heartbeat nach einem Reload.
 - Verifiziert mit isolierten Tests: (1) ohne Heartbeats fährt der Server nach ca. 2–3s automatisch herunter, (2) mit laufenden Heartbeats bleibt er aktiv und fährt erst nach Ausbleiben der Heartbeats + Timeout herunter.
+
+## 2026-08-19 — Ordner `legacy/` in `old/` umbenannt
+
+- Der Ordner mit den drei ursprünglichen Einzel-Kamera-Skripten wurde von `legacy/` in `old/` umbenannt (per `git mv`, Historie bleibt erhalten), auf Wunsch des Nutzers, um veraltete Dateien klarer zu kennzeichnen. Inhalt und Zweck unverändert: reine Referenz, nicht mehr für `app.py` benötigt.

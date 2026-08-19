@@ -11,4 +11,4 @@ Open items, roughly in priority order. Move finished items to history.md instead
 - [ ] Consider adding automatic re-discovery / hot-plug detection instead of manual "Refresh camera list" button.
 - [ ] Consider persisting the exposure value per camera between sessions.
 - [ ] Add basic automated tests for `cameras/registry.py` (driver registration) and `cameras/imaging.py` (histogram shape/dtype).
-- [ ] Decide whether `legacy/` scripts should eventually be deleted once the new dashboard is confirmed working in production.
+- [ ] Decide whether `old/` scripts should eventually be deleted once the new dashboard is confirmed working in production.

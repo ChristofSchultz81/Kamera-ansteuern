@@ -9,7 +9,7 @@ Status snapshot for whoever picks up this project next. Update this file as the 
   - `cameras/` — driver abstraction (`base.py`), two concrete drivers (`opencv_driver.py` for generic USB/DirectShow cameras, `alliedvision_driver.py` for Allied Vision via `vmbpy`), plus `registry.py` and shared `imaging.py`.
   - `config.py` — all magic numbers centralized.
   - `templates/index.html` — the dashboard page.
-  - `legacy/` — the three original per-camera scripts, kept for reference only, no longer maintained.
+  - `old/` — the three original per-camera scripts, kept for reference only, no longer maintained (renamed from `legacy/`).
 - Allied Vision camera hardware-tested successfully: `AlliedVisionCameraDriver` opens the real camera (`DEV_1AB22C0301FB`), reads frames (2064x2464 mono), reports/reads exposure range and current value, and closes cleanly. See history.md for details and a pitfall about hung processes if `close()` isn't called after a failed `open()`.
 - Fixed: browser video feed was black for the Allied Vision camera because `create_histogram()` crashed on mono `(H, W, 1)` frames and the image/histogram height check in `app.py` almost never matched. Fixed in `cameras/imaging.py` (`ensure_bgr()` helper, `create_histogram(height=...)` parameter) and `app.py`. Verified with synthetic frames and live against the real camera.
 - Second camera (Bresser MikroCam SP 5.0) verified working through the existing generic `OpenCVCameraDriver` once its DirectShow driver was installed on the machine — no new driver code needed.

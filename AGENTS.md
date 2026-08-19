@@ -15,7 +15,7 @@ kamera-anteuern-und-auslesen/
 │   └── imaging.py                # shared histogram / JPEG helpers
 ├── templates/
 │   └── index.html               # dashboard page (camera dropdown, video feed, controls)
-├── legacy/                      # original per-camera scripts, reference only
+├── old/                         # original per-camera scripts, reference only
 │   ├── camera_dashboard.py
 │   ├── camera_dashboard_Alliedvision.py
 │   ├── Any_Cam_USB_WEBCAM-BROWSER.py

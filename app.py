@@ -1,6 +1,6 @@
 """Unified, browser-based camera dashboard.
 
-Replaces the previous per-camera scripts (see legacy/). Any camera model
+Replaces the previous per-camera scripts (see old/). Any camera model
 registered in cameras/registry.py can be picked from a dropdown in the
 browser; the GUI code below only ever talks to the generic
 ``CameraDriver`` interface, never to a specific camera SDK.
