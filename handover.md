@@ -10,8 +10,9 @@ Status snapshot for whoever picks up this project next. Update this file as the 
   - `config.py` — all magic numbers centralized.
   - `templates/index.html` — the dashboard page.
   - `legacy/` — the three original per-camera scripts, kept for reference only, no longer maintained.
-- Not yet hardware-tested: no camera was physically connected in the environment where this refactor was done. `python -m py_compile` and module imports succeed, but the actual camera streaming/exposure paths need to be verified on a machine with the cameras attached.
-- Git: existing `origin` remote (GitLab, HTW Berlin) untouched. A new `github` remote should be added pointing to `https://github.com/ChristofSchultz81/Kamera-ansteuern` and pushed there (see backlog.md).
+- Allied Vision camera hardware-tested successfully: `AlliedVisionCameraDriver` opens the real camera (`DEV_1AB22C0301FB`), reads frames (2064x2464 mono), reports/reads exposure range and current value, and closes cleanly. See history.md for details and a pitfall about hung processes if `close()` isn't called after a failed `open()`.
+- Generic USB webcam driver and full end-to-end browser GUI with the Allied Vision camera still need verification (see backlog.md).
+- Git: existing `origin` remote (GitLab, HTW Berlin) untouched. A `github` remote was added and the refactor commit was pushed to `https://github.com/ChristofSchultz81/Kamera-ansteuern` (branch `main`).
 
 ## How to run
 

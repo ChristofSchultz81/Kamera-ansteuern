@@ -2,8 +2,11 @@
 
 Open items, roughly in priority order. Move finished items to history.md instead of deleting them here.
 
-- [ ] Push repository to the new GitHub remote `https://github.com/ChristofSchultz81/Kamera-ansteuern` (auth needs to be set up: SSH key or GitHub CLI login for this machine).
-- [ ] Hardware-test the unified dashboard with all three physical cameras (generic USB webcam, old Limi USB camera, Allied Vision Alvium).
+- [x] Push repository to the new GitHub remote `https://github.com/ChristofSchultz81/Kamera-ansteuern` — done, commit `3863a8c` on `main`.
+- [x] Hardware-test `AlliedVisionCameraDriver` directly against the real Allied Vision camera — done, works (open/read_frame/exposure/close all verified).
+- [ ] Hardware-test the full `app.py` browser dashboard end-to-end with the Allied Vision camera selected from the dropdown (open/close through the Flask API, not just the driver directly).
+- [ ] Hardware-test the generic USB webcam driver and the old Limi USB camera through the dashboard.
+- [ ] Investigate the extra `DEV_Cam1/2/3` entries reported by vmbpy discovery (likely simulator/demo devices) and consider filtering them out in `AlliedVisionCameraDriver.discover()` if they are not real hardware.
 - [ ] Verify vmbpy install instructions in `requirements.txt` against the actual SDK version in use.
 - [ ] Consider adding automatic re-discovery / hot-plug detection instead of manual "Refresh camera list" button.
 - [ ] Consider persisting the exposure value per camera between sessions.

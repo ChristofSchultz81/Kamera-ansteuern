@@ -22,3 +22,10 @@ Dieses Dokument wird **immer nur erweitert (append-only)**. Bestehende Einträge
 - Code und Kommentare wurden komplett auf Englisch umgestellt (bisherige Skripte waren gemischt Deutsch/Englisch).
 - Projekt soll zusätzlich zum bestehenden GitLab-Remote (`origin`, HTW Berlin) auch zu einem neuen GitHub-Repo (`https://github.com/ChristofSchultz81/Kamera-ansteuern`) gepusht werden.
 - Fortschritts-Dokumente `handover.md`, `backlog.md` und `handoff.md` neu angelegt.
+- Commit `3863a8c` erfolgreich zu `github`-Remote (main-Branch) gepusht.
+
+## 2026-08-19 — Hardware-Test Allied Vision Kamera erfolgreich
+
+- Die Allied-Vision-Kamera war nun physisch angeschlossen. `discover_all_cameras()` fand sie korrekt unter `driver_key='allied_vision'`, `device_id='DEV_1AB22C0301FB'` (zusätzlich wurden vom vmbpy-Discovery mehrere Demo-Geräte `DEV_Cam1/2/3` gemeldet, vermutlich Simulator-Einträge des Treibers/Transportlayers, keine echte Hardware).
+- `AlliedVisionCameraDriver` wurde direkt (ohne GUI) gegen die echte Kamera getestet: `open()`, `read_frame()` (Bild 2064×2464, 1 Kanal, uint8), `get_exposure_range()` (27.138 – 200000.0), `get_exposure()` und `close()` funktionieren wie erwartet, kein Hänger beim ordnungsgemäßen Schließen.
+- Wichtige Erkenntnis: Wird `open()` durch eine Exception unterbrochen bevor `close()` läuft, bleibt der interne vmbpy-`VmbSystem`-Kontext offen und der Python-Prozess hängt beim Beenden (Hintergrund-Threads werden nicht sauber beendet). Das führt zu einer dauerhaft blockierten Kamera (`VmbError.InUse`) und zu hängenden Terminals. Deshalb muss `driver.close()` beim Testen/Debuggen immer in einem `try/finally` aufgerufen werden; hängende Python-Prozesse müssen ggf. manuell beendet werden (`Stop-Process`), um die Kamera wieder freizugeben.
