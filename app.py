@@ -17,7 +17,7 @@ from tkinter import filedialog
 from flask import Flask, Response, jsonify, render_template, request
 
 import config
-from cameras.imaging import create_histogram, encode_jpeg
+from cameras.imaging import create_histogram, encode_jpeg, ensure_bgr
 from cameras.registry import create_driver, discover_all_cameras
 
 app = Flask(__name__)
@@ -150,12 +150,10 @@ def _generate_stream_frames():
                 time.sleep(config.STREAM_IDLE_RETRY_DELAY_SECONDS)
                 continue
 
-            histogram = create_histogram(frame)
+            frame_bgr = ensure_bgr(frame)
+            histogram = create_histogram(frame, height=frame_bgr.shape[0])
             histogram_bgr = cv2.cvtColor(histogram, cv2.COLOR_GRAY2BGR)
-            if frame.shape[0] == histogram_bgr.shape[0]:
-                combined = cv2.hconcat([frame, histogram_bgr])
-            else:
-                combined = frame
+            combined = cv2.hconcat([frame_bgr, histogram_bgr])
 
             jpeg_bytes = encode_jpeg(combined)
             if jpeg_bytes is None:
