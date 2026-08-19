@@ -39,6 +39,17 @@ def ensure_bgr(image: np.ndarray) -> np.ndarray:
     return image
 
 
+def create_no_signal_frame(message: str) -> np.ndarray:
+    # HEADER: Builds a placeholder BGR frame with a status message, shown while no camera frame is available.
+    frame = np.zeros((config.NO_SIGNAL_FRAME_HEIGHT, config.NO_SIGNAL_FRAME_WIDTH, 3), dtype=np.uint8)
+    frame[:] = config.NO_SIGNAL_BG_COLOR_BGR
+    cv2.putText(
+        frame, message, (40, config.NO_SIGNAL_FRAME_HEIGHT // 2),
+        cv2.FONT_HERSHEY_SIMPLEX, 1.0, config.NO_SIGNAL_TEXT_COLOR_BGR, 2,
+    )
+    return frame
+
+
 def encode_jpeg(image: np.ndarray) -> Optional[bytes]:
     # HEADER: Encodes a BGR image to JPEG bytes using the configured quality setting.
     success, buffer = cv2.imencode(

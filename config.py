@@ -44,6 +44,15 @@ HISTOGRAM_HEIGHT = 150
 HISTOGRAM_WIDTH = 256
 HISTOGRAM_BIN_COUNT = 256
 
+# --- "No signal" placeholder frame, shown while no camera frame is available ----
+NO_SIGNAL_FRAME_WIDTH = 640
+NO_SIGNAL_FRAME_HEIGHT = 480
+NO_SIGNAL_BG_COLOR_BGR = (120, 50, 50)
+NO_SIGNAL_TEXT_COLOR_BGR = (255, 255, 255)
+NO_SIGNAL_MESSAGE_NO_CAMERA = "No camera selected"
+NO_SIGNAL_MESSAGE_NO_FRAME = "NO SIGNAL - waiting for camera..."
+
+
 # --- Image saving ----------------------------------------------------------------
 DEFAULT_SAVE_SUBDIR = "Downloads"          # fallback folder relative to the user's profile
 IMAGE_TIMESTAMP_FORMAT = "%Y-%m-%d_%H-%M-%S"

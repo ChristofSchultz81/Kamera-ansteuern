@@ -53,3 +53,8 @@ Dieses Dokument wird **immer nur erweitert (append-only)**. Bestehende Einträge
 ## 2026-08-19 — Ordner `legacy/` in `old/` umbenannt
 
 - Der Ordner mit den drei ursprünglichen Einzel-Kamera-Skripten wurde von `legacy/` in `old/` umbenannt (per `git mv`, Historie bleibt erhalten), auf Wunsch des Nutzers, um veraltete Dateien klarer zu kennzeichnen. Inhalt und Zweck unverändert: reine Referenz, nicht mehr für `app.py` benötigt.
+
+## 2026-08-19 — Prüfung: Treiber der alten Kamera (USB_OLDLiMi_Cam.py) bereits integriert, fehlendes "NO SIGNAL"-Bild ergänzt
+
+- Nutzerfrage: ob der Kamera-Zugriff aus `old/USB_OLDLiMi_Cam.py` noch in `app.py` integriert werden muss. Ergebnis der Analyse: Der eigentliche Treiberzugriff (`cv2.VideoCapture` mit `cv2.CAP_DSHOW`, Auflösung 640x480, Belichtungsbereich -13 bis 0 mit Default -5, 1s Warmup) ist bereits vollständig in `cameras/opencv_driver.py` (`OpenCVCameraDriver`) übernommen — die Werte in `config.py` (`OPENCV_FRAME_WIDTH/HEIGHT`, `OPENCV_EXPOSURE_MIN/MAX/DEFAULT`, `OPENCV_WARMUP_DELAY_SECONDS`) stammen direkt aus diesem Skript. Es war keine neue Integration nötig.
+- Einzige noch fehlende Funktionalität aus dem alten Skript war das blaue "KEIN SIGNAL"-Platzhalterbild, das gezeigt wurde, wenn die Kamera (kurzzeitig) keine Frames liefert. Das wurde nun nachgezogen: neue Funktion `create_no_signal_frame()` in `cameras/imaging.py`, genutzt in `app.py`s Streaming-Generator sowohl wenn keine Kamera ausgewählt ist als auch wenn eine ausgewählte Kamera gerade kein Bild liefert. Texte/Farben zentral in `config.py` (`NO_SIGNAL_*`).

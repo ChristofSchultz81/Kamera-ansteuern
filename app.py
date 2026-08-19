@@ -19,7 +19,7 @@ from tkinter import filedialog
 from flask import Flask, Response, jsonify, render_template, request
 
 import config
-from cameras.imaging import create_histogram, encode_jpeg, ensure_bgr
+from cameras.imaging import create_histogram, create_no_signal_frame, encode_jpeg, ensure_bgr
 from cameras.registry import create_driver, discover_all_cameras
 
 app = Flask(__name__)
@@ -170,12 +170,26 @@ def _generate_stream_frames():
             driver = _active_driver
 
         if driver is None:
+            placeholder = create_no_signal_frame(config.NO_SIGNAL_MESSAGE_NO_CAMERA)
+            jpeg_bytes = encode_jpeg(placeholder)
+            if jpeg_bytes is not None:
+                yield (
+                    b"--" + config.MJPEG_BOUNDARY.encode() + b"\r\n"
+                    b"Content-Type: image/jpeg\r\n\r\n" + jpeg_bytes + b"\r\n"
+                )
             time.sleep(config.STREAM_IDLE_RETRY_DELAY_SECONDS)
             continue
 
         try:
             frame = driver.read_frame()
             if frame is None:
+                placeholder = create_no_signal_frame(config.NO_SIGNAL_MESSAGE_NO_FRAME)
+                jpeg_bytes = encode_jpeg(placeholder)
+                if jpeg_bytes is not None:
+                    yield (
+                        b"--" + config.MJPEG_BOUNDARY.encode() + b"\r\n"
+                        b"Content-Type: image/jpeg\r\n\r\n" + jpeg_bytes + b"\r\n"
+                    )
                 time.sleep(config.STREAM_IDLE_RETRY_DELAY_SECONDS)
                 continue
 
