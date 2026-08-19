@@ -7,6 +7,7 @@ browser; the GUI code below only ever talks to the generic
 """
 
 import os
+import re
 import threading
 import time
 from datetime import datetime
@@ -43,6 +44,12 @@ def select_save_directory() -> str:
     if chosen_dir:
         return os.path.normpath(chosen_dir)
     return os.path.join(os.environ.get("USERPROFILE", os.getcwd()), config.DEFAULT_SAVE_SUBDIR)
+
+
+def sanitize_filename_label(raw_label: str) -> str:
+    # HEADER: Strips any character unsafe for filenames/paths from user input and caps its length.
+    safe = re.sub(r"[^A-Za-z0-9_-]+", "_", raw_label.strip())
+    return safe[: config.IMAGE_LABEL_MAX_LENGTH]
 
 
 @app.route("/")
@@ -127,8 +134,11 @@ def api_save_image():
     if frame is None:
         return jsonify(success=False, message="No live image available to save")
 
+    payload = request.get_json(silent=True) or {}
+    label = sanitize_filename_label(str(payload.get("label", "")))
+
     timestamp = datetime.now().strftime(config.IMAGE_TIMESTAMP_FORMAT)
-    filename = f"{timestamp}{config.IMAGE_FILE_EXTENSION}"
+    filename = f"{timestamp}_{label}{config.IMAGE_FILE_EXTENSION}" if label else f"{timestamp}{config.IMAGE_FILE_EXTENSION}"
     full_path = os.path.join(_save_directory, filename)
 
     success = cv2.imwrite(full_path, frame)

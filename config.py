@@ -41,3 +41,4 @@ HISTOGRAM_BIN_COUNT = 256
 DEFAULT_SAVE_SUBDIR = "Downloads"          # fallback folder relative to the user's profile
 IMAGE_TIMESTAMP_FORMAT = "%Y-%m-%d_%H-%M-%S"
 IMAGE_FILE_EXTENSION = ".jpg"
+IMAGE_LABEL_MAX_LENGTH = 40   # user-supplied filename text is truncated to this many characters
