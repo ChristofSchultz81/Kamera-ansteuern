@@ -1,6 +1,36 @@
-# Kamera anteuern und auslesen
+# Kamera ansteuern und auslesen
 
+A unified, browser-based dashboard for driving multiple camera models
+through one generic interface. Pick a camera from a dropdown; the live
+image, histogram and exposure control work the same regardless of the
+underlying camera hardware.
 
+## Project structure
+
+- `app.py` — the Flask GUI (single entry point, `python app.py`).
+- `config.py` — all magic numbers (ports, resolutions, exposure ranges, timings) in one place.
+- `cameras/` — the generic camera driver layer:
+  - `base.py` — the `CameraDriver` interface every driver implements.
+  - `opencv_driver.py` — generic driver for USB/DirectShow webcams.
+  - `alliedvision_driver.py` — driver for Allied Vision cameras via `vmbpy`.
+  - `registry.py` — registers driver classes so the GUI can list/create them.
+  - `imaging.py` — shared histogram/JPEG helpers.
+- `templates/index.html` — the dashboard page.
+- `legacy/` — the original per-camera scripts, kept for reference only.
+- `history.md` — append-only project history (German).
+- `handover.md`, `backlog.md`, `handoff.md` — current status, open items, session handoff notes.
+
+## Adding a new camera
+
+Implement a new `CameraDriver` subclass in `cameras/`, register it in
+`cameras/registry.py`, add any camera-specific constants to `config.py`.
+`app.py` and `templates/index.html` do not need to change.
+
+## Coding conventions
+
+Every function must start with a one-line `# HEADER: ...` comment (or
+docstring) describing its purpose. **This header must never be removed**,
+even when refactoring the function body.
 
 ## Getting started
 

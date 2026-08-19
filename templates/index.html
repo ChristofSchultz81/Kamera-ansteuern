@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; padding: 20px; }
+        .grid { display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 20px; }
+        img { border: 3px solid #444; border-radius: 8px; background: black; max-width: 90vw; min-height: 300px; }
+        .controls { background: #2a2a2a; padding: 20px; border-radius: 12px; width: 600px; max-width: 90vw; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        select, input[type=range] { width: 100%; margin: 15px 0; }
+        .btns { display: flex; gap: 15px; justify-content: center; margin-top: 15px; }
+        button { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .btn-refresh { background: #007bff; color: white; }
+        .btn-save { background: #28a745; color: white; }
+        #status { margin-top: 15px; color: #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Camera Dashboard</h1>
+    <div class="grid">
+        <select id="cameraSelect" onchange="selectCamera()">
+            <option value="">-- select a camera --</option>
+        </select>
+        <button class="btn-refresh" onclick="refreshCameraList()">Refresh camera list</button>
+
+        <img id="videoFeed" src="" alt="No camera selected">
+
+        <div class="controls">
+            <label>Exposure: <span id="expVal">-</span></label>
+            <input type="range" id="expSlider" oninput="onSliderInput(this.value)" disabled>
+            <div class="btns">
+                <button class="btn-save" onclick="saveImage()">Save image</button>
+            </div>
+            <p id="status">Save folder: {{ save_dir }}</p>
+        </div>
+    </div>
+
+    <script>
+        function refreshCameraList() {
+            fetch('/api/cameras').then(r => r.json()).then(data => {
+                const select = document.getElementById('cameraSelect');
+                select.innerHTML = '<option value="">-- select a camera --</option>';
+                data.cameras.forEach(cam => {
+                    const opt = document.createElement('option');
+                    opt.value = JSON.stringify({driver_key: cam.driver_key, device_id: cam.device_id});
+                    opt.textContent = cam.display_name;
+                    select.appendChild(opt);
+                });
+            });
+        }
+
+        function selectCamera() {
+            const select = document.getElementById('cameraSelect');
+            if (!select.value) return;
+            const choice = JSON.parse(select.value);
+
+            fetch('/api/select', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(choice)
+            }).then(r => r.json()).then(data => {
+                if (!data.success) {
+                    document.getElementById('status').innerText = 'Error: ' + data.message;
+                    return;
+                }
+                document.getElementById('videoFeed').src = '/video_feed?ts=' + Date.now();
+
+                const slider = document.getElementById('expSlider');
+                slider.min = data.exposure_min;
+                slider.max = data.exposure_max;
+                slider.value = data.exposure_current;
+                slider.disabled = false;
+                document.getElementById('expVal').innerText = data.exposure_current;
+            });
+        }
+
+        function onSliderInput(val) {
+            document.getElementById('expVal').innerText = val;
+            fetch('/api/set_exposure', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({value: val})
+            });
+        }
+
+        function saveImage() {
+            const statusEl = document.getElementById('status');
+            statusEl.innerText = 'Saving...';
+            fetch('/api/save_image', {method: 'POST'}).then(r => r.json()).then(data => {
+                statusEl.innerText = data.message;
+            });
+        }
+
+        refreshCameraList();
+    </script>
+</body>
+</html>
