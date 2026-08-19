@@ -15,6 +15,8 @@ Status snapshot for whoever picks up this project next. Update this file as the 
 - Second camera (Bresser MikroCam SP 5.0) verified working through the existing generic `OpenCVCameraDriver` once its DirectShow driver was installed on the machine — no new driver code needed.
 - `app.py` now auto-opens the default browser on startup and auto-shuts-down (including releasing the active camera) once the browser tab stops sending heartbeats, i.e. when it's closed. See `config.py` (`AUTO_OPEN_BROWSER*`, `HEARTBEAT_*`).
 - Confirmed `old/USB_OLDLiMi_Cam.py`'s driver logic (cv2.VideoCapture + CAP_DSHOW, 640x480, exposure -13..0) was already fully absorbed into `cameras/opencv_driver.py` / `config.py` during the initial refactor. Added the one missing piece: a "NO SIGNAL" placeholder frame (`create_no_signal_frame()` in `cameras/imaging.py`) shown in the stream when no camera is selected or a selected camera delivers no frame.
+- Bresser MikroCam SP 5.0 confirmed fully working end-to-end through the browser dashboard (generic `OpenCVCameraDriver`, no new code needed). An earlier black-image report was a flaky USB connection, not a bug — resolved by re-plugging the camera.
+- Video feed (`#videoFeed`) now scales responsively to the browser window/screen resolution (`max-width: 90vw; max-height: 70vh; object-fit: contain`), regardless of the camera's native resolution.
 - Generic USB webcam driver and full end-to-end browser GUI with the Allied Vision camera still need verification (see backlog.md).
 - Git: existing `origin` remote (GitLab, HTW Berlin) untouched. A `github` remote was added and the refactor commit was pushed to `https://github.com/ChristofSchultz81/Kamera-ansteuern` (branch `main`).
 
