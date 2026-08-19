@@ -31,10 +31,13 @@ _save_directory = os.getcwd()
 
 def select_save_directory() -> str:
     # HEADER: Asks the user (via a native folder dialog) where captured images should be saved.
+    print("[INFO] Waiting for folder selection dialog (check for a new window, it may be behind others)...")
     root = tk.Tk()
     root.withdraw()
     root.attributes("-topmost", True)
-    chosen_dir = filedialog.askdirectory(title="Select folder for saved images")
+    root.lift()
+    root.focus_force()
+    chosen_dir = filedialog.askdirectory(title="Select folder for saved images", parent=root)
     root.destroy()
 
     if chosen_dir:
