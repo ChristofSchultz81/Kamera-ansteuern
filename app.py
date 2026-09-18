@@ -61,7 +61,10 @@ def sanitize_filename_label(raw_label: str) -> str:
 def index():
     # HEADER: Renders the single-page dashboard shell (camera dropdown, video feed, controls).
     return render_template(
-        "index.html", save_dir=_save_directory, heartbeat_interval_ms=config.HEARTBEAT_INTERVAL_MS
+        "index.html",
+        save_dir=_save_directory,
+        heartbeat_interval_ms=config.HEARTBEAT_INTERVAL_MS,
+        histogram_width=config.HISTOGRAM_WIDTH,
     )
 
 

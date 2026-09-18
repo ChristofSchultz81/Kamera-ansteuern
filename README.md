@@ -16,7 +16,6 @@ underlying camera hardware.
   - `registry.py` — registers driver classes so the GUI can list/create them.
   - `imaging.py` — shared histogram/JPEG helpers.
 - `templates/index.html` — the dashboard page.
-- `old/` — the original per-camera scripts, kept for reference only.
 - `history.md` — append-only project history (German).
 - `handover.md`, `backlog.md`, `handoff.md` — current status, open items, session handoff notes.
 

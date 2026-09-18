@@ -11,5 +11,5 @@ Open items, roughly in priority order. Move finished items to history.md instead
 - [ ] Consider adding automatic re-discovery / hot-plug detection instead of manual "Refresh camera list" button.
 - [ ] Consider persisting the exposure value per camera between sessions.
 - [ ] Add basic automated tests for `cameras/registry.py` (driver registration) and `cameras/imaging.py` (histogram shape/dtype).
-- [ ] Decide whether `old/` scripts should eventually be deleted once the new dashboard is confirmed working in production.
-- [ ] Next planned feature (new branch): measurement tool overlay on the camera image (e.g. draw a line/ruler on the live frame and read out a distance, likely needs a pixel-to-real-world calibration step per camera/lens).
+- [x] Remove obsolete per-camera scripts and their outdated documentation after the generic dashboard migration.
+- [x] Add a browser measurement overlay for native pixel distances between two points.

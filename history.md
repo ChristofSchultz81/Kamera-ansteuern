@@ -74,3 +74,16 @@ Dieses Dokument wird **immer nur erweitert (append-only)**. Bestehende Einträge
 - Der OpenCV-Treiber verwendete bisher ausschließlich `CAP_DSHOW`. Das konnte UVC-Kameras ausblenden, die unter Windows nur über Media Foundation verfügbar sind.
 - Discovery und Öffnen verwenden jetzt `CAP_ANY`, sodass OpenCV das passende Windows-Backend automatisch auswählt.
 - Verifiziert: Ein OpenCV-Gerät wurde unter Python 3.14.6 über `MSMF` geöffnet und lieferte erfolgreich einen Frame.
+
+## 2026-09-18 — Pixelabstand im Kamerabild messen
+
+- Die Browseransicht hat jetzt eine Mess-Overlay-Ebene über dem MJPEG-Kamerabild.
+- Zwei Klicks im Kamerabild markieren eine Strecke und zeigen deren euklidischen Abstand in nativen Bild-Pixeln an; ein dritter Klick startet eine neue Messung.
+- Klicks im angehängten Histogramm werden ignoriert. Die Skalierung des responsiv dargestellten Bildes wird auf die native Kamerabildgröße zurückgerechnet.
+- Die Messung kann über einen Reset-Button gelöscht werden und wird beim Wechsel der Kamera automatisch zurückgesetzt.
+
+## 2026-09-18 — Veraltete Dateien aus dem Branch entfernt
+
+- Die vier früheren Einzel-Kamera-Skripte unter `old/` wurden entfernt, da ihre Funktionalität vollständig in der generischen Treiberarchitektur enthalten ist.
+- Die veraltete `README_KAMERA.md` wurde ebenfalls entfernt; die aktuelle Dokumentation steht in `README.md`.
+- Während der Bereinigung erzeugte lokale Python-Caches wurden gelöscht.

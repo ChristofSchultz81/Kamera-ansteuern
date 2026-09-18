@@ -7,13 +7,13 @@ Notes for the next person/session continuing this work.
 - Refactored three separate camera scripts into one generic, driver-based architecture (`app.py` + `cameras/`).
 - Centralized all magic numbers in `config.py`.
 - Added the mandatory `# HEADER: ...` one-line comment to every function (see AGENTS.md — this rule must not be removed).
-- Moved old scripts to `legacy/` (git history preserved via `git mv`).
+- Removed the obsolete per-camera scripts after their functionality was absorbed by the generic dashboard.
 - Added `history.md` (German, append-only), `handover.md`, `backlog.md`, this `handoff.md`.
 
 ## What still needs attention
 
 - No physical camera was available to test streaming/exposure end-to-end during this refactor — see backlog.md.
-- GitHub push: `origin` remote (GitLab) was left untouched; a `github` remote must be added and pushed, pending auth setup on this machine.
+- The GitHub remote is configured and the refactor has already been pushed; see `history.md` for the commit details.
 
 ## Where to look first
 
