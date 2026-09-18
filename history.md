@@ -63,3 +63,14 @@ Dieses Dokument wird **immer nur erweitert (append-only)**. Bestehende Einträge
 
 - Fehlerbild: Kamera wurde im Dropdown erkannt, Bild blieb aber schwarz. Diagnose zeigte: Die MikroCam war zeitweise gar nicht mehr per DirectShow/PnP erreichbar (USB-Verbindung instabil bei diesem günstigen Gerät). Nach erneutem Ab-/Anstecken des USB-Kabels und "Refresh camera list" hat es funktioniert — kein Fehler im eigenen Code.
 - Zusätzlich gewünscht und umgesetzt: Das Kamerabild im Browser (`#videoFeed`) skaliert jetzt responsiv zur Bildschirmgröße/-auflösung (`max-width: 90vw; max-height: 70vh; object-fit: contain` statt fester `min-height`), unabhängig von der nativen Auflösung der jeweiligen Kamera.
+
+## 2026-09-18 — Python-3.14.6-Kompatibilität der Abhängigkeiten
+
+- Die festgepinnten Versionen `numpy==1.24.3`, `opencv-python==4.8.1.78`, `Flask==2.3.3`, `Pillow==10.0.0` und `Werkzeug==2.3.7` wurden durch Python-3.14-fähige Versionsbereiche ersetzt.
+- Verifiziert: Die Kamera-Abhängigkeiten lösen sich unter Python 3.14.6 vollständig auf, und die zentralen Kamera-Module importieren erfolgreich.
+
+## 2026-09-18 — UVC-Kameras nicht mehr auf DirectShow festgelegt
+
+- Der OpenCV-Treiber verwendete bisher ausschließlich `CAP_DSHOW`. Das konnte UVC-Kameras ausblenden, die unter Windows nur über Media Foundation verfügbar sind.
+- Discovery und Öffnen verwenden jetzt `CAP_ANY`, sodass OpenCV das passende Windows-Backend automatisch auswählt.
+- Verifiziert: Ein OpenCV-Gerät wurde unter Python 3.14.6 über `MSMF` geöffnet und lieferte erfolgreich einen Frame.

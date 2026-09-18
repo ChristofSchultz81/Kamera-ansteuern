@@ -26,6 +26,7 @@ STREAM_ERROR_RETRY_DELAY_SECONDS = 1.0  # pause after an unexpected streaming er
 
 # --- Generic OpenCV camera driver defaults (covers USB / webcam style cameras) -
 OPENCV_DISCOVERY_MAX_INDEX = 5    # how many device indices to probe when scanning
+OPENCV_BACKEND = 0               # OpenCV CAP_ANY; lets Windows select DirectShow or Media Foundation
 OPENCV_FRAME_WIDTH = 640
 OPENCV_FRAME_HEIGHT = 480
 OPENCV_EXPOSURE_MIN = -13

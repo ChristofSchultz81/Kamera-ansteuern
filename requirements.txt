@@ -1,8 +1,8 @@
-Flask==2.3.3
-opencv-python==4.8.1.78
-numpy==1.24.3
-Pillow==10.0.0
-Werkzeug==2.3.7
+Flask>=3.1,<4
+opencv-python>=4.13,<5
+numpy>=2.4,<3
+Pillow>=12,<13
+Werkzeug>=3.1,<4
 
 # vmbpy is only required to use the Allied Vision driver (cameras/alliedvision_driver.py).
 # It ships with the Allied Vision Vimba X SDK and is not available on PyPI,

@@ -29,7 +29,7 @@ class OpenCVCameraDriver(CameraDriver):
         # HEADER: Probes device indices 0..N and reports every index that returns a valid frame.
         descriptors: List[CameraDescriptor] = []
         for index in range(config.OPENCV_DISCOVERY_MAX_INDEX):
-            capture = cv2.VideoCapture(index, cv2.CAP_DSHOW)
+            capture = cv2.VideoCapture(index, config.OPENCV_BACKEND)
             if capture.isOpened():
                 success, _ = capture.read()
                 if success:
@@ -46,7 +46,7 @@ class OpenCVCameraDriver(CameraDriver):
     def open(self, device_id: str) -> None:
         # HEADER: Opens the requested device index and applies the default resolution/exposure.
         index = int(device_id)
-        self._capture = cv2.VideoCapture(index, cv2.CAP_DSHOW)
+        self._capture = cv2.VideoCapture(index, config.OPENCV_BACKEND)
         self._capture.set(cv2.CAP_PROP_FRAME_WIDTH, config.OPENCV_FRAME_WIDTH)
         self._capture.set(cv2.CAP_PROP_FRAME_HEIGHT, config.OPENCV_FRAME_HEIGHT)
         time.sleep(config.OPENCV_WARMUP_DELAY_SECONDS)
