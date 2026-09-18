@@ -1,4 +1,4 @@
-"""Generic driver for any USB webcam accessible through OpenCV's VideoCapture API.
+"""Generic driver for USB webcams accessible through OpenCV.
 
 This single driver replaces the previous ``Any_Cam_USB_WEBCAM-BROWSER.py``
 and ``USB_OLDLiMi_Cam.py`` scripts: both used plain OpenCV + DirectShow,
@@ -16,7 +16,7 @@ from cameras.base import CameraDescriptor, CameraDriver
 
 
 class OpenCVCameraDriver(CameraDriver):
-    """Camera driver for any device reachable via cv2.VideoCapture (DirectShow backend)."""
+    """Driver for devices reachable through ``cv2.VideoCapture``."""
 
     driver_key = "opencv_usb"
 
@@ -26,7 +26,7 @@ class OpenCVCameraDriver(CameraDriver):
 
     @classmethod
     def discover(cls) -> List[CameraDescriptor]:
-        # HEADER: Probes device indices 0..N and reports every index that returns a valid frame.
+        # HEADER: Reports device indices that return a valid frame.
         descriptors: List[CameraDescriptor] = []
         for index in range(config.OPENCV_DISCOVERY_MAX_INDEX):
             capture = cv2.VideoCapture(index, config.OPENCV_BACKEND)
@@ -44,11 +44,13 @@ class OpenCVCameraDriver(CameraDriver):
         return descriptors
 
     def open(self, device_id: str) -> None:
-        # HEADER: Opens the requested device index and applies the default resolution/exposure.
+        # HEADER: Opens the device and applies default resolution and exposure.
         index = int(device_id)
         self._capture = cv2.VideoCapture(index, config.OPENCV_BACKEND)
         self._capture.set(cv2.CAP_PROP_FRAME_WIDTH, config.OPENCV_FRAME_WIDTH)
-        self._capture.set(cv2.CAP_PROP_FRAME_HEIGHT, config.OPENCV_FRAME_HEIGHT)
+        self._capture.set(
+            cv2.CAP_PROP_FRAME_HEIGHT, config.OPENCV_FRAME_HEIGHT
+        )
         time.sleep(config.OPENCV_WARMUP_DELAY_SECONDS)
         self.set_exposure(config.OPENCV_EXPOSURE_DEFAULT)
 
@@ -59,7 +61,7 @@ class OpenCVCameraDriver(CameraDriver):
             self._capture = None
 
     def read_frame(self) -> Optional[np.ndarray]:
-        # HEADER: Reads and returns the next available frame from the open device, or None on failure.
+        # HEADER: Reads the next frame, or returns None on failure.
         if self._capture is None:
             return None
         success, frame = self._capture.read()
@@ -68,15 +70,18 @@ class OpenCVCameraDriver(CameraDriver):
         return frame
 
     def get_exposure_range(self) -> Tuple[float, float]:
-        # HEADER: Returns the configured exposure slider range for OpenCV/DirectShow cameras.
-        return float(config.OPENCV_EXPOSURE_MIN), float(config.OPENCV_EXPOSURE_MAX)
+        # HEADER: Returns the configured exposure slider range.
+        return (
+            float(config.OPENCV_EXPOSURE_MIN),
+            float(config.OPENCV_EXPOSURE_MAX),
+        )
 
     def get_exposure(self) -> float:
         # HEADER: Returns the last exposure value applied through this driver.
         return self._current_exposure
 
     def set_exposure(self, value: float) -> None:
-        # HEADER: Applies the given exposure value to the open camera via CAP_PROP_EXPOSURE.
+        # HEADER: Applies an exposure value through OpenCV.
         if self._capture is not None:
             self._capture.set(cv2.CAP_PROP_EXPOSURE, value)
         self._current_exposure = float(value)

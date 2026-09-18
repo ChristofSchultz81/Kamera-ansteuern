@@ -18,13 +18,16 @@ DRIVER_CLASSES: Dict[str, Type[CameraDriver]] = {
 
 
 def discover_all_cameras() -> List[CameraDescriptor]:
-    # HEADER: Asks every registered driver class to discover its devices and merges the results.
+    # HEADER: Discovers devices through every registered driver.
     descriptors: List[CameraDescriptor] = []
     for driver_class in DRIVER_CLASSES.values():
         try:
             descriptors.extend(driver_class.discover())
         except Exception as error:
-            print(f"[WARNING] Discovery failed for driver '{driver_class.driver_key}': {error}")
+            print(
+                f"[WARNING] Discovery failed for driver "
+                f"'{driver_class.driver_key}': {error}"
+            )
     return descriptors
 
 

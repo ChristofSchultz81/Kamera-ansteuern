@@ -19,7 +19,12 @@ from tkinter import filedialog
 from flask import Flask, Response, jsonify, render_template, request
 
 import config
-from cameras.imaging import create_histogram, create_no_signal_frame, encode_jpeg, ensure_bgr
+from cameras.imaging import (
+    create_histogram,
+    create_no_signal_frame,
+    encode_jpeg,
+    ensure_bgr,
+)
 from cameras.registry import create_driver, discover_all_cameras
 
 app = Flask(__name__)
@@ -30,36 +35,40 @@ _session_lock = threading.Lock()
 _active_driver = None
 _save_directory = os.getcwd()
 
-# Tracks the last time the browser tab pinged us, used to detect when it's closed.
+# Tracks the last browser heartbeat to detect when the tab is closed.
 _heartbeat_lock = threading.Lock()
 _last_heartbeat_time = None
 
 
 def select_save_directory() -> str:
-    # HEADER: Asks the user (via a native folder dialog) where captured images should be saved.
-    print("[INFO] Waiting for folder selection dialog (check for a new window, it may be behind others)...")
+    # HEADER: Asks where captured images should be saved.
+    print("[INFO] Waiting for the save-folder dialog...")
     root = tk.Tk()
     root.withdraw()
     root.attributes("-topmost", True)
     root.lift()
     root.focus_force()
-    chosen_dir = filedialog.askdirectory(title="Select folder for saved images", parent=root)
+    chosen_dir = filedialog.askdirectory(
+        title="Select folder for saved images", parent=root
+    )
     root.destroy()
 
     if chosen_dir:
         return os.path.normpath(chosen_dir)
-    return os.path.join(os.environ.get("USERPROFILE", os.getcwd()), config.DEFAULT_SAVE_SUBDIR)
+    return os.path.join(
+        os.environ.get("USERPROFILE", os.getcwd()), config.DEFAULT_SAVE_SUBDIR
+    )
 
 
 def sanitize_filename_label(raw_label: str) -> str:
-    # HEADER: Strips any character unsafe for filenames/paths from user input and caps its length.
+    # HEADER: Sanitizes and limits the optional filename label.
     safe = re.sub(r"[^A-Za-z0-9_-]+", "_", raw_label.strip())
     return safe[: config.IMAGE_LABEL_MAX_LENGTH]
 
 
 @app.route("/")
 def index():
-    # HEADER: Renders the single-page dashboard shell (camera dropdown, video feed, controls).
+    # HEADER: Renders the dashboard shell and its controls.
     return render_template(
         "index.html",
         save_dir=_save_directory,
@@ -70,7 +79,7 @@ def index():
 
 @app.route("/api/heartbeat", methods=["POST"])
 def api_heartbeat():
-    # HEADER: Receives a keep-alive ping from the open browser tab; used to detect when it's closed.
+    # HEADER: Records a keep-alive ping from the browser tab.
     global _last_heartbeat_time
     with _heartbeat_lock:
         _last_heartbeat_time = time.time()
@@ -79,7 +88,7 @@ def api_heartbeat():
 
 @app.route("/api/cameras")
 def api_cameras():
-    # HEADER: Returns the list of currently discoverable cameras across all registered drivers.
+    # HEADER: Returns all cameras found by the registered drivers.
     descriptors = discover_all_cameras()
     return jsonify(
         cameras=[
@@ -95,7 +104,7 @@ def api_cameras():
 
 @app.route("/api/select", methods=["POST"])
 def api_select():
-    # HEADER: Closes any previously active camera and opens the one requested by the browser.
+    # HEADER: Replaces the active camera with the requested device.
     global _active_driver
 
     payload = request.get_json(force=True)
@@ -127,7 +136,7 @@ def api_select():
 
 @app.route("/api/set_exposure", methods=["POST"])
 def api_set_exposure():
-    # HEADER: Forwards a new exposure value from the browser slider to the active camera driver.
+    # HEADER: Forwards a slider exposure value to the active driver.
     payload = request.get_json(force=True)
     value = float(payload.get("value"))
 
@@ -144,20 +153,25 @@ def api_set_exposure():
 
 @app.route("/api/save_image", methods=["POST"])
 def api_save_image():
-    # HEADER: Captures the current frame from the active camera and writes it to the save folder.
+    # HEADER: Captures a frame and writes it to the configured save folder.
     with _session_lock:
         if _active_driver is None:
             return jsonify(success=False, message="No camera selected")
         frame = _active_driver.read_frame()
 
     if frame is None:
-        return jsonify(success=False, message="No live image available to save")
+        return jsonify(
+            success=False, message="No live image available to save"
+        )
 
     payload = request.get_json(silent=True) or {}
     label = sanitize_filename_label(str(payload.get("label", "")))
 
     timestamp = datetime.now().strftime(config.IMAGE_TIMESTAMP_FORMAT)
-    filename = f"{timestamp}_{label}{config.IMAGE_FILE_EXTENSION}" if label else f"{timestamp}{config.IMAGE_FILE_EXTENSION}"
+    if label:
+        filename = f"{timestamp}_{label}{config.IMAGE_FILE_EXTENSION}"
+    else:
+        filename = f"{timestamp}{config.IMAGE_FILE_EXTENSION}"
     full_path = os.path.join(_save_directory, filename)
 
     success = cv2.imwrite(full_path, frame)
@@ -167,13 +181,15 @@ def api_save_image():
 
 
 def _generate_stream_frames():
-    # HEADER: Generator yielding MJPEG-encoded frames (image + histogram side by side) for the browser.
+    # HEADER: Yields MJPEG frames with the camera image and histogram.
     while True:
         with _session_lock:
             driver = _active_driver
 
         if driver is None:
-            placeholder = create_no_signal_frame(config.NO_SIGNAL_MESSAGE_NO_CAMERA)
+            placeholder = create_no_signal_frame(
+                config.NO_SIGNAL_MESSAGE_NO_CAMERA
+            )
             jpeg_bytes = encode_jpeg(placeholder)
             if jpeg_bytes is not None:
                 yield (
@@ -186,12 +202,16 @@ def _generate_stream_frames():
         try:
             frame = driver.read_frame()
             if frame is None:
-                placeholder = create_no_signal_frame(config.NO_SIGNAL_MESSAGE_NO_FRAME)
+                placeholder = create_no_signal_frame(
+                    config.NO_SIGNAL_MESSAGE_NO_FRAME
+                )
                 jpeg_bytes = encode_jpeg(placeholder)
                 if jpeg_bytes is not None:
                     yield (
                         b"--" + config.MJPEG_BOUNDARY.encode() + b"\r\n"
-                        b"Content-Type: image/jpeg\r\n\r\n" + jpeg_bytes + b"\r\n"
+                        b"Content-Type: image/jpeg\r\n\r\n"
+                        + jpeg_bytes
+                        + b"\r\n"
                     )
                 time.sleep(config.STREAM_IDLE_RETRY_DELAY_SECONDS)
                 continue
@@ -217,15 +237,17 @@ def _generate_stream_frames():
 
 @app.route("/video_feed")
 def video_feed():
-    # HEADER: Exposes the MJPEG stream at a stable URL consumed by the <img> tag in the browser.
+    # HEADER: Exposes the MJPEG stream consumed by the browser image.
     return Response(
         _generate_stream_frames(),
-        mimetype=f"multipart/x-mixed-replace; boundary={config.MJPEG_BOUNDARY}",
+        mimetype=(
+            f"multipart/x-mixed-replace; boundary={config.MJPEG_BOUNDARY}"
+        ),
     )
 
 
 def _shutdown_server() -> None:
-    # HEADER: Releases the active camera driver (if any) and terminates the whole process.
+    # HEADER: Releases the active driver and terminates the process.
     global _active_driver
     with _session_lock:
         if _active_driver is not None:
@@ -235,23 +257,25 @@ def _shutdown_server() -> None:
 
 
 def _watchdog_loop() -> None:
-    # HEADER: Background thread that shuts the server down once the browser tab stops sending heartbeats.
+    # HEADER: Stops the server after browser heartbeats stop.
     global _last_heartbeat_time
     with _heartbeat_lock:
-        _last_heartbeat_time = time.time()  # grace period until the first heartbeat arrives
+        _last_heartbeat_time = time.time()
 
     while True:
         time.sleep(config.HEARTBEAT_CHECK_INTERVAL_SECONDS)
         with _heartbeat_lock:
             last = _last_heartbeat_time
-        if last is not None and (time.time() - last) > config.HEARTBEAT_TIMEOUT_SECONDS:
+        if last is not None and (
+            time.time() - last
+        ) > config.HEARTBEAT_TIMEOUT_SECONDS:
             print("[INFO] Browser tab appears to be closed, shutting down...")
             _shutdown_server()
             return
 
 
 def main():
-    # HEADER: Application entry point: asks for a save folder, then starts the Flask dev server.
+    # HEADER: Selects the save folder and starts the Flask server.
     global _save_directory
     _save_directory = select_save_directory()
     print(f"[INFO] Images will be saved to: {_save_directory}")
@@ -261,7 +285,10 @@ def main():
 
     if config.AUTO_OPEN_BROWSER:
         url = f"http://127.0.0.1:{config.FLASK_PORT}"
-        threading.Timer(config.AUTO_OPEN_BROWSER_DELAY_SECONDS, lambda: webbrowser.open(url)).start()
+        threading.Timer(
+            config.AUTO_OPEN_BROWSER_DELAY_SECONDS,
+            lambda: webbrowser.open(url),
+        ).start()
 
     app.run(
         host=config.FLASK_HOST,

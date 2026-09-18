@@ -20,7 +20,7 @@ import numpy as np
 
 @dataclass
 class CameraDescriptor:
-    """Lightweight description of a discoverable camera, before it is opened."""
+    """Description of a camera before it is opened."""
 
     driver_key: str
     device_id: str
@@ -35,7 +35,7 @@ class CameraDriver(ABC):
     @classmethod
     @abstractmethod
     def discover(cls) -> List[CameraDescriptor]:
-        # HEADER: Scans for available devices of this driver type without opening them.
+        # HEADER: Scans for devices without opening them.
         raise NotImplementedError
 
     @abstractmethod
@@ -45,17 +45,17 @@ class CameraDriver(ABC):
 
     @abstractmethod
     def close(self) -> None:
-        # HEADER: Releases the camera device and stops any background streaming.
+        # HEADER: Releases the device and stops background streaming.
         raise NotImplementedError
 
     @abstractmethod
     def read_frame(self) -> Optional[np.ndarray]:
-        # HEADER: Returns the most recent frame as a BGR numpy array, or None if unavailable.
+        # HEADER: Returns the latest BGR frame, or None if unavailable.
         raise NotImplementedError
 
     @abstractmethod
     def get_exposure_range(self) -> Tuple[float, float]:
-        # HEADER: Returns the (min, max) exposure values supported by this camera.
+        # HEADER: Returns the supported minimum and maximum exposure.
         raise NotImplementedError
 
     @abstractmethod

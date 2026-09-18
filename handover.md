@@ -24,7 +24,7 @@ Status snapshot for whoever picks up this project next. Update this file as the 
 
 ## How to run
 
-```
+```powershell
 pip install -r requirements.txt
 python app.py
 ```
