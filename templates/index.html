@@ -40,6 +40,7 @@
         button { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; }
         .btn-refresh { background: #007bff; color: white; }
         .btn-save { background: #28a745; color: white; }
+        .btn-measure { background: #f0ad4e; color: #111; }
         #status { margin-top: 15px; color: #ccc; }
     </style>
 </head>
@@ -63,6 +64,9 @@
             <input type="text" id="filenameLabelInput" placeholder="e.g. sample-1">
             <div class="btns">
                 <button class="btn-save" onclick="saveImage()">Save image</button>
+                <button class="btn-measure" type="button" onclick="startNewMeasurement()">
+                    Add another pair
+                </button>
                 <button type="button" onclick="resetMeasurement()">Reset measurement</button>
             </div>
             <p id="measurementStatus">Click two points in the camera image to measure the distance in pixels.</p>
@@ -122,11 +126,24 @@
         function saveImage() {
             const statusEl = document.getElementById('status');
             const label = document.getElementById('filenameLabelInput').value;
+            const savedMeasurements = measurements.map(measurement => ({
+                first: {
+                    nativeX: measurement.first.nativeX,
+                    nativeY: measurement.first.nativeY
+                },
+                second: {
+                    nativeX: measurement.second.nativeX,
+                    nativeY: measurement.second.nativeY
+                }
+            }));
             statusEl.innerText = 'Saving...';
             fetch('/api/save_image', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({label: label})
+                body: JSON.stringify({
+                    label: label,
+                    measurements: savedMeasurements
+                })
             }).then(r => r.json()).then(data => {
                 statusEl.innerText = data.message;
             });
@@ -142,28 +159,57 @@
             drawMeasurement();
         }
 
-        // HEADER: Draws the selected measurement points and connecting line over the live image.
+        // HEADER: Maps a native camera point to the current displayed image size.
+        function toDisplayPoint(point) {
+            const image = document.getElementById('videoFeed');
+            const rect = image.getBoundingClientRect();
+            return {
+                displayX: point.nativeX * rect.width / image.naturalWidth,
+                displayY: point.nativeY * rect.height / image.naturalHeight
+            };
+        }
+
+        // HEADER: Draws all completed measurements and the active point over the live image.
         function drawMeasurement() {
             const canvas = document.getElementById('measurementCanvas');
             const context = canvas.getContext('2d');
             context.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (measurementPoints.length === 0) return;
-
-            context.fillStyle = '#ffcc00';
-            context.strokeStyle = '#ffcc00';
+            context.font = 'bold 14px sans-serif';
             context.lineWidth = 2;
-            measurementPoints.forEach(point => {
+            measurements.forEach((measurement, index) => {
+                const first = toDisplayPoint(measurement.first);
+                const second = toDisplayPoint(measurement.second);
+                const middleX = (first.displayX + second.displayX) / 2;
+                const middleY = (first.displayY + second.displayY) / 2;
+                const label = `#${index + 1}: ${measurement.distance.toFixed(2)} px`;
+
+                context.strokeStyle = '#ffcc00';
+                context.beginPath();
+                context.moveTo(first.displayX, first.displayY);
+                context.lineTo(second.displayX, second.displayY);
+                context.stroke();
+
+                context.fillStyle = '#ffcc00';
+                [first, second].forEach(point => {
+                    context.beginPath();
+                    context.arc(point.displayX, point.displayY, 5, 0, 2 * Math.PI);
+                    context.fill();
+                });
+
+                const labelWidth = context.measureText(label).width;
+                context.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                context.fillRect(middleX - 4, middleY - 15, labelWidth + 8, 22);
+                context.fillStyle = '#ffffff';
+                context.fillText(label, middleX, middleY - 4);
+            });
+
+            if (measurementPoints.length === 1) {
+                const point = toDisplayPoint(measurementPoints[0]);
+                context.fillStyle = '#ffcc00';
                 context.beginPath();
                 context.arc(point.displayX, point.displayY, 5, 0, 2 * Math.PI);
                 context.fill();
-            });
-
-            if (measurementPoints.length === 2) {
-                context.beginPath();
-                context.moveTo(measurementPoints[0].displayX, measurementPoints[0].displayY);
-                context.lineTo(measurementPoints[1].displayX, measurementPoints[1].displayY);
-                context.stroke();
             }
         }
 
@@ -171,6 +217,12 @@
         function handleMeasurementClick(event) {
             const image = document.getElementById('videoFeed');
             if (!image.naturalWidth || !image.naturalHeight) return;
+
+            if (!isAddingMeasurement) {
+                document.getElementById('measurementStatus').innerText =
+                    'Click "Add another pair" before selecting more points.';
+                return;
+            }
 
             const rect = image.getBoundingClientRect();
             const displayX = event.clientX - rect.left;
@@ -185,16 +237,14 @@
                 return;
             }
 
-            if (measurementPoints.length === 2) measurementPoints = [];
             measurementPoints.push({
                 nativeX: nativeX,
                 nativeY: displayY * image.naturalHeight / rect.height,
                 displayX: displayX,
                 displayY: displayY
             });
-            drawMeasurement();
-
             if (measurementPoints.length === 1) {
+                drawMeasurement();
                 document.getElementById('measurementStatus').innerText =
                     'First point selected. Click the second point.';
                 return;
@@ -203,19 +253,37 @@
             const first = measurementPoints[0];
             const second = measurementPoints[1];
             const distance = Math.hypot(second.nativeX - first.nativeX, second.nativeY - first.nativeY);
+            measurements.push({first: first, second: second, distance: distance});
+            measurementPoints = [];
+            isAddingMeasurement = false;
+            drawMeasurement();
             document.getElementById('measurementStatus').innerText =
-                `Distance: ${distance.toFixed(2)} px`;
+                `Measurement ${measurements.length}: ${distance.toFixed(2)} px. ` +
+                'Add another pair for a new measurement.';
         }
 
-        // HEADER: Clears the active pixel measurement and its visual overlay.
-        function resetMeasurement() {
+        // HEADER: Enables selection of a new pair without removing completed measurements.
+        function startNewMeasurement() {
             measurementPoints = [];
+            isAddingMeasurement = true;
+            document.getElementById('measurementStatus').innerText =
+                'Click two points in the camera image for the next measurement.';
+            drawMeasurement();
+        }
+
+        // HEADER: Clears all pixel measurements and the active overlay.
+        function resetMeasurement() {
+            measurements = [];
+            measurementPoints = [];
+            isAddingMeasurement = true;
             document.getElementById('measurementStatus').innerText =
                 'Click two points in the camera image to measure the distance in pixels.';
             drawMeasurement();
         }
 
         let measurementPoints = [];
+        let measurements = [];
+        let isAddingMeasurement = true;
         document.getElementById('measurementCanvas').addEventListener('click', handleMeasurementClick);
         window.addEventListener('resize', resizeMeasurementCanvas);
 

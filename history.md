@@ -87,3 +87,14 @@ Dieses Dokument wird **immer nur erweitert (append-only)**. Bestehende Einträge
 - Die vier früheren Einzel-Kamera-Skripte unter `old/` wurden entfernt, da ihre Funktionalität vollständig in der generischen Treiberarchitektur enthalten ist.
 - Die veraltete `README_KAMERA.md` wurde ebenfalls entfernt; die aktuelle Dokumentation steht in `README.md`.
 - Während der Bereinigung erzeugte lokale Python-Caches wurden gelöscht.
+
+## 2026-09-18 — Mehrere Pixelmessungen im Kamerabild
+
+- Abgeschlossene Messungen bleiben jetzt als Linien mit markierten Punkten und Abstandstext direkt im Kamerabild sichtbar.
+- Der Button `Add another pair` startet ein weiteres Punktepaar, ohne vorherige Messungen zu löschen.
+- Messungen werden beim Ändern der Fenstergröße aus den nativen Pixelkoordinaten neu auf das Bild skaliert.
+
+## 2026-09-18 — Messannotationen im gespeicherten Bild
+
+- Der Speichervorgang überträgt die nativen Messkoordinaten vom Browser an Flask.
+- Punkte, Messlinien und Abstandstexte werden serverseitig in den aufgenommenen Frame gezeichnet, bevor die Bilddatei geschrieben wird.

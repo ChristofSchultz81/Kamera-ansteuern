@@ -27,10 +27,12 @@ dashboard automatically at `http://127.0.0.1:5000`.
 
 1. Select a camera and adjust its exposure with the slider.
 2. Click two points in the camera image to measure their distance in pixels.
-3. Use **Reset measurement** to clear the overlay.
-4. Enter an optional filename label before saving an image.
+3. Use **Add another pair** to keep the first measurement and start another.
+4. Use **Reset measurement** to clear all measurements.
+5. Enter an optional filename label before saving an image.
 
 The histogram area is not part of the pixel measurement.
+Saved images include the visible measurement points, lines, and distance labels.
 
 ## Development checks
 

@@ -22,6 +22,7 @@ import config
 from cameras.imaging import (
     create_histogram,
     create_no_signal_frame,
+    draw_measurements,
     encode_jpeg,
     ensure_bgr,
 )
@@ -166,6 +167,10 @@ def api_save_image():
 
     payload = request.get_json(silent=True) or {}
     label = sanitize_filename_label(str(payload.get("label", "")))
+    measurements = payload.get("measurements", [])
+    if not isinstance(measurements, list):
+        measurements = []
+    annotated_frame = draw_measurements(frame, measurements)
 
     timestamp = datetime.now().strftime(config.IMAGE_TIMESTAMP_FORMAT)
     if label:
@@ -174,7 +179,7 @@ def api_save_image():
         filename = f"{timestamp}{config.IMAGE_FILE_EXTENSION}"
     full_path = os.path.join(_save_directory, filename)
 
-    success = cv2.imwrite(full_path, frame)
+    success = cv2.imwrite(full_path, annotated_frame)
     if success:
         return jsonify(success=True, message=f"Saved: {filename}")
     return jsonify(success=False, message=f"Could not write file: {full_path}")

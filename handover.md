@@ -19,6 +19,8 @@ Status snapshot for whoever picks up this project next. Update this file as the 
 - Python 3.14.6 compatibility was checked. The runtime dependencies in `requirements.txt` now use Python-3.14-compatible version ranges; central camera-module imports pass under Python 3.14.6.
 - OpenCV USB discovery and opening now use `CAP_ANY` via `config.OPENCV_BACKEND`, allowing UVC cameras to use DirectShow or Media Foundation automatically. Verified with a live frame through the `MSMF` backend.
 - The browser dashboard now supports two-point pixel-distance measurements directly on the live camera image. The overlay converts responsive display coordinates back to native camera pixels, ignores histogram clicks, and can be reset.
+- Completed measurements are labeled directly on the image, and `Add another pair` starts additional measurements without removing earlier ones. Overlays are recalculated from native coordinates after resizing.
+- Saving now sends native measurement coordinates to Flask, which renders points, lines, and distance labels into the captured image before writing the file.
 - Generic USB webcam driver and full end-to-end browser GUI with the Allied Vision camera still need verification (see backlog.md).
 - Git: existing `origin` remote (GitLab, HTW Berlin) untouched. A `github` remote was added and the refactor commit was pushed to `https://github.com/ChristofSchultz81/Kamera-ansteuern` (branch `main`).
 
