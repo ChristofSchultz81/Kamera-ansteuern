@@ -28,25 +28,38 @@ class OpenCVCameraDriver(CameraDriver):
     def discover(cls) -> List[CameraDescriptor]:
         # HEADER: Reports device indices that return a valid frame.
         descriptors: List[CameraDescriptor] = []
-        for index in range(config.OPENCV_DISCOVERY_MAX_INDEX):
-            capture = cv2.VideoCapture(index, config.OPENCV_BACKEND)
-            if capture.isOpened():
-                success, _ = capture.read()
-                if success:
-                    descriptors.append(
-                        CameraDescriptor(
-                            driver_key=cls.driver_key,
-                            device_id=str(index),
-                            display_name=f"USB Camera #{index}",
+        for backend, device_type in config.OPENCV_DISCOVERY_BACKENDS:
+            for index in range(config.OPENCV_DISCOVERY_MAX_INDEX):
+                capture = cv2.VideoCapture(index, backend)
+                if capture.isOpened():
+                    time.sleep(config.OPENCV_DISCOVERY_WARMUP_DELAY_SECONDS)
+                    success, _ = capture.read()
+                    if success or not config.OPENCV_DISCOVERY_REQUIRE_FRAME:
+                        frame_status = "" if success else " (initializing)"
+                        descriptors.append(
+                            CameraDescriptor(
+                                driver_key=cls.driver_key,
+                                device_id=(
+                                    f"{backend}"
+                                    f"{config.OPENCV_DEVICE_ID_SEPARATOR}"
+                                    f"{index}"
+                                ),
+                                display_name=(
+                                    f"{device_type} #{index}{frame_status}"
+                                ),
+                            )
                         )
-                    )
-            capture.release()
+                capture.release()
         return descriptors
 
     def open(self, device_id: str) -> None:
         # HEADER: Opens the device and applies default resolution and exposure.
-        index = int(device_id)
-        self._capture = cv2.VideoCapture(index, config.OPENCV_BACKEND)
+        backend_text, index_text = device_id.split(
+            config.OPENCV_DEVICE_ID_SEPARATOR, maxsplit=1
+        )
+        index = int(index_text)
+        backend = int(backend_text)
+        self._capture = cv2.VideoCapture(index, backend)
         self._capture.set(cv2.CAP_PROP_FRAME_WIDTH, config.OPENCV_FRAME_WIDTH)
         self._capture.set(
             cv2.CAP_PROP_FRAME_HEIGHT, config.OPENCV_FRAME_HEIGHT

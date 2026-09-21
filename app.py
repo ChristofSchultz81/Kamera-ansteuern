@@ -1,6 +1,6 @@
 """Unified, browser-based camera dashboard.
 
-Replaces the previous per-camera scripts (see old/). Any camera model
+Replaces the previous per-camera scripts. Any camera model
 registered in cameras/registry.py can be picked from a dropdown in the
 browser; the GUI code below only ever talks to the generic
 ``CameraDriver`` interface, never to a specific camera SDK.
@@ -54,8 +54,12 @@ def select_save_directory() -> str:
         or os.getcwd(),
         config.DEFAULT_SAVE_SUBDIR,
     )
-    if tk is None or filedialog is None:
-        print("[INFO] Tkinter is unavailable; using the default save folder.")
+    if (
+        not config.SHOW_SAVE_DIRECTORY_DIALOG
+        or tk is None
+        or filedialog is None
+    ):
+        print("[INFO] Using the default save folder.")
         os.makedirs(fallback_directory, exist_ok=True)
         return fallback_directory
 

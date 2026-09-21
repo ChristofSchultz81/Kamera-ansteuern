@@ -23,53 +23,40 @@ python app.py
 At startup, select the folder for captured images. The browser opens the
 dashboard automatically at `http://127.0.0.1:5000`.
 
-## UVC camera versions
+## Windows 10 executable
 
-The two operating-system launchers support generic USB Video Class (UVC)
-cameras using only the camera interface built into the operating system. They
-do not require a camera-vendor driver or SDK. A non-UVC camera, including an
-Allied Vision camera or the Bresser MikroCam SP 5.0, still requires its
-manufacturer's driver or SDK.
+The Bresser-specific, ready-to-distribute Windows 10 application is:
 
-On Ubuntu, use the kernel's Video4Linux2 interface:
+`dist\BresserCameraDashboard-Windows10.exe`
 
-```bash
-python3 -m pip install -r requirements.txt
-python3 app_ubuntu.py
-```
-
-On Windows 11, use the built-in UVC backend (Media Foundation or DirectShow):
-
-```powershell
-python -m pip install -r requirements.txt
-python app_windows11.py
-```
-
-If the graphical folder picker is unavailable, for example on an Ubuntu
-installation without Tkinter, captured images are saved in `~/Downloads`.
-
-## Windows 11 executable
-
-The ready-to-distribute Windows application is:
-
-`dist\CameraDashboard-Windows11\CameraDashboard-Windows11.exe`
-
-Copy the complete `CameraDashboard-Windows11` folder to the target PC and run
-the executable inside it. Do not copy the `.exe` by itself because it needs the
-bundled `_internal` folder. The target PC does not need Python or the packages
-from `requirements.txt`.
+Copy this one `.exe` file to the target PC and start it by double-clicking it.
+The target PC does not need internet access, Python, or the packages from
+`requirements.txt`. The browser opens automatically and captured images are
+saved in the current user's `Downloads` folder.
 
 To rebuild the distribution folder on a development PC, install PyInstaller
 and run:
 
 ```powershell
 python -m pip install pyinstaller
-python -m PyInstaller --noconfirm --clean app_windows11.spec
+python -m PyInstaller --noconfirm --clean app_bresser_windows10.spec
 ```
 
 The Bresser MikroCam SP 5.0 is not a UVC camera. Its Bresser DirectShow driver
 must still be installed on the Windows target PC before the executable can
 access it.
+
+The Bresser executable first uses the Bresser/ToupTek OEM SDK installed by
+MikroCamLabII. A detected proprietary camera appears as
+`Bresser MikroCam SDK: ...` in the dropdown. It then falls back to DirectShow;
+entries labeled `USB webcam` are generic webcam devices.
+
+If MikroCamLabII was installed in a custom location and the SDK camera does not
+appear, set `BRESSER_CAMERA_SDK_DLL` on the laboratory PC to the full path of
+the installed `BresserCam.dll` or `toupcam.dll`, then start the executable
+again. This does not require Python or an internet connection.
+DirectShow entries marked `(initializing)` are deliberately kept in the list
+even when the camera has not returned its first image during the scan.
 
 ## Using the dashboard
 
@@ -87,5 +74,5 @@ Saved images include the visible measurement points, lines, and distance labels.
 Run the Python syntax check from the project directory:
 
 ```powershell
-python -m compileall -q app.py cameras
+python -m compileall -q app.py app_bresser_windows10.py cameras
 ```

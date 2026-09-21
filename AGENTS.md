@@ -2,7 +2,7 @@
 
 ## Project structure
 
-```
+```text
 kamera-anteuern-und-auslesen/
 ├── app.py                       # Flask GUI entry point, run with `python app.py`
 ├── config.py                    # all magic numbers/constants live here
@@ -15,11 +15,6 @@ kamera-anteuern-und-auslesen/
 │   └── imaging.py                # shared histogram / JPEG helpers
 ├── templates/
 │   └── index.html               # dashboard page (camera dropdown, video feed, controls)
-├── old/                         # original per-camera scripts, reference only
-│   ├── camera_dashboard.py
-│   ├── camera_dashboard_Alliedvision.py
-│   ├── Any_Cam_USB_WEBCAM-BROWSER.py
-│   └── USB_OLDLiMi_Cam.py
 ├── docs/                        # camera datasheets etc.
 ├── history.md                   # append-only project history (German, never delete entries)
 ├── handover.md                  # current status snapshot

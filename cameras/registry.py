@@ -7,14 +7,25 @@ No other file needs to change.
 
 from typing import Dict, List, Type
 
+import config
 from cameras.base import CameraDescriptor, CameraDriver
 from cameras.opencv_driver import OpenCVCameraDriver
-from cameras.alliedvision_driver import AlliedVisionCameraDriver
 
-DRIVER_CLASSES: Dict[str, Type[CameraDriver]] = {
-    OpenCVCameraDriver.driver_key: OpenCVCameraDriver,
-    AlliedVisionCameraDriver.driver_key: AlliedVisionCameraDriver,
-}
+DRIVER_CLASSES: Dict[str, Type[CameraDriver]] = {}
+
+if config.ENABLE_BRESSER_SDK_DRIVER:
+    from cameras.bresser_sdk_driver import BresserSdkCameraDriver
+
+    DRIVER_CLASSES[BresserSdkCameraDriver.driver_key] = BresserSdkCameraDriver
+
+DRIVER_CLASSES[OpenCVCameraDriver.driver_key] = OpenCVCameraDriver
+
+if config.ENABLE_ALLIEDVISION_DRIVER:
+    from cameras.alliedvision_driver import AlliedVisionCameraDriver
+
+    DRIVER_CLASSES[AlliedVisionCameraDriver.driver_key] = (
+        AlliedVisionCameraDriver
+    )
 
 
 def discover_all_cameras() -> List[CameraDescriptor]:

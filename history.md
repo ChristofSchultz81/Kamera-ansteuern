@@ -111,3 +111,31 @@ Dieses Dokument wird **immer nur erweitert (append-only)**. Bestehende Einträge
 - PyInstaller-Spezifikation `app_windows11.spec` ergänzt. Sie bündelt den Windows-11-Starter, Python-Laufzeitbibliotheken, OpenCV, Flask und die Browser-Vorlage in einer Windows-Anwendung ohne sichtbares Konsolenfenster.
 - Erfolgreich erstellt: `dist\CameraDashboard-Windows11\CameraDashboard-Windows11.exe` inklusive zugehörigem `_internal`-Ordner. Für die Weitergabe muss der gesamte Ordner kopiert werden; Python und die in `requirements.txt` genannten Pakete sind auf dem Ziel-PC nicht nötig.
 - Die Bresser MikroCam SP 5.0 benötigt weiterhin den separat installierten signierten Bresser-DirectShow-Treiber. Dieser kann nicht als Bestandteil der Python-Anwendung ersetzt werden.
+
+## 2026-09-21 — Offline-Einzeldatei für die Bresser MikroCam SP 5.0
+
+- Fehleranalyse der ersten EXE anhand von `IMG_9198.JPG`: Der allgemeine Starter importierte den Allied-Vision-Treiber und damit `vmbpy`. Auf dem Bresser-PC fehlte erwartungsgemäß die Vimba-X-Installation, weshalb der Start mit `Expected VmbC to be included with VmbPy` abbrach.
+- Neuer Bresser-spezifischer Starter `app_bresser_windows11.py`: Er registriert ausschließlich den OpenCV/DirectShow-Treiber und lädt den Allied-Vision-Treiber nicht.
+- Neue PyInstaller-Spezifikation `app_bresser_windows11.spec` erzeugt eine einzelne selbstentpackende Datei: `dist\BresserCameraDashboard-Windows11.exe`. Python, OpenCV, Flask und die Browser-Vorlage sind eingebettet; `vmbpy` und Vimba-Bestandteile sind nicht enthalten.
+- Die Bresser-EXE zeigt keinen Ordnerdialog und startet die Browseroberfläche direkt. Aufnahmen werden automatisch unter `%USERPROFILE%\Downloads` gespeichert.
+- Weiterhin zwingende Voraussetzung bleibt der separat installierte Bresser-DirectShow-Treiber auf dem Ziel-PC. Für Python oder Internet besteht keine Anforderung.
+
+## 2026-09-21 — DirectShow-Erkennung für die Bresser MikroCam
+
+- Die Bresser-Anwendung verwendete bisher nur `CAP_ANY`. Dadurch konnte OpenCV für die Suche den Media-Foundation-Pfad wählen und die unter DirectShow registrierte MikroCam übersehen, obwohl sie im Windows-Gerätemanager unter Bildverarbeitungsgeräte erscheint.
+- Der Bresser-Starter durchsucht jetzt zuerst DirectShow (`CAP_DSHOW`) und danach den allgemeinen Windows-Kamerapfad. Der gewählte Backend-Typ wird in der Geräte-ID gespeichert, sodass eine DirectShow-Kamera beim Öffnen nicht versehentlich über ein anderes Backend angesprochen wird.
+- Im Dropdown heißen DirectShow-Treffer `MikroCam candidate / DirectShow camera #...`; allgemeine Kamera-Treffer heißen `USB webcam #...`. Die Kennzeichnung als Kandidat ist bewusst, da OpenCV den exakten Namen aus dem Windows-Gerätemanager nicht übermittelt und auch eine Webcam als DirectShow-Gerät vorkommen kann.
+
+## 2026-09-21 — Zielsystem auf Windows 10 korrigiert
+
+- Der Labor-PC mit der Bresser MikroCam SP 5.0 verwendet Windows 10, nicht Windows 11.
+- Dafür wurden `app_bresser_windows10.py` und `app_bresser_windows10.spec` ergänzt und die einzelne Offline-Anwendung `dist\BresserCameraDashboard-Windows10.exe` erstellt.
+- Die Windows-10-Variante verwendet weiterhin DirectShow für die Bresser-Erkennung, benötigt kein Internet und enthält die Python-Laufzeit samt Abhängigkeiten.
+- Der Bresser-Starter sucht nun die Indizes 0 bis 9 wie der ursprüngliche Bresser-Viewer. Geöffnete DirectShow-Geräte bleiben auch dann auswählbar, wenn sie während des Discovery-Scans noch kein Frame liefern; diese erscheinen mit dem Zusatz `(initializing)` und der Live-Stream wartet nach der Auswahl weiter auf das erste Bild.
+
+## 2026-09-21 — Proprietärer SDK-Zugriff für MikroCamLabII ergänzt
+
+- Die Kennung `USB\VID_0547&PID_1236` stammt aus der vorhandenen Bresser-Notiz und bestätigt, dass die Kamera als proprietäres USB-Gerät statt als UVC-Webcam arbeitet. Dass MikroCamLabII Bilder liefert, beweist daher nicht, dass OpenCV sie als Kameraindex finden kann.
+- Neuer Treiber `cameras/bresser_sdk_driver.py` sucht die mit MikroCamLabII installierte `BresserCam.dll` oder `toupcam.dll`, enumeriert darüber die Kameras und liest RGB-Bilder über deren Pull-Mode-API. Dieser Treiber wird in der Bresser-Windows-10-Variante vor dem OpenCV-Rückfallweg registriert.
+- Der SDK-Treiber durchsucht übliche Installationsorte sowie die Windows-Uninstall-Registrierung. Bei einer benutzerdefinierten Installation kann der vollständige DLL-Pfad über `BRESSER_CAMERA_SDK_DLL` gesetzt werden.
+- Die aktualisierte Datei `dist\BresserCameraDashboard-Windows10.exe` enthält den neuen Treiber. Die Hersteller-DLL selbst wird bewusst vom bereits installierten MikroCamLabII auf dem Labor-PC geladen.
