@@ -2,7 +2,7 @@
 
 Status snapshot for whoever picks up this project next. Update this file as the project evolves; it reflects the *current* state (unlike history.md, which is append-only).
 
-## Current state (2026-09-18)
+## Current state (2026-09-21)
 
 - Unified, generic camera dashboard implemented:
   - `app.py` — single Flask app, browser-based GUI, camera dropdown, MJPEG video feed, exposure slider, histogram, save button.
@@ -21,6 +21,9 @@ Status snapshot for whoever picks up this project next. Update this file as the 
 - The browser dashboard now supports two-point pixel-distance measurements directly on the live camera image. The overlay converts responsive display coordinates back to native camera pixels, ignores histogram clicks, and can be reset.
 - Completed measurements are labeled directly on the image, and `Add another pair` starts additional measurements without removing earlier ones. Overlays are recalculated from native coordinates after resizing.
 - Saving now sends native measurement coordinates to Flask, which renders points, lines, and distance labels into the captured image before writing the file.
+- Separate UVC launchers are available: `app_ubuntu.py` uses Ubuntu Video4Linux2, while `app_windows11.py` lets OpenCV use the Windows inbox UVC backend. They share the same dashboard and require no camera-vendor driver for standard UVC cameras.
+- The save-folder picker is optional. Without Tkinter or a graphical session, the application creates and uses the current user's `Downloads` directory.
+- A Windows distribution was built with PyInstaller. Deliver `dist\CameraDashboard-Windows11\` as a complete folder and start `CameraDashboard-Windows11.exe`; Python and Python packages are bundled. The Bresser DirectShow driver is still required on the target PC.
 - Generic USB webcam driver and full end-to-end browser GUI with the Allied Vision camera still need verification (see backlog.md).
 - Git: existing `origin` remote (GitLab, HTW Berlin) untouched. A `github` remote was added and the refactor commit was pushed to `https://github.com/ChristofSchultz81/Kamera-ansteuern` (branch `main`).
 
@@ -28,10 +31,23 @@ Status snapshot for whoever picks up this project next. Update this file as the 
 
 ```powershell
 pip install -r requirements.txt
-python app.py
+python app_windows11.py
 ```
 
 A folder picker dialog appears first (where to save images), then open `http://127.0.0.1:5000` in a browser.
+
+On Ubuntu, use:
+
+```bash
+python3 -m pip install -r requirements.txt
+python3 app_ubuntu.py
+```
+
+## Windows EXE distribution
+
+- Build configuration: `app_windows11.spec`.
+- Ready-to-distribute application: `dist\CameraDashboard-Windows11\CameraDashboard-Windows11.exe`.
+- Rebuild with `python -m PyInstaller --noconfirm --clean app_windows11.spec` after installing PyInstaller.
 
 ## Adding a new camera
 

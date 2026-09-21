@@ -98,3 +98,16 @@ Dieses Dokument wird **immer nur erweitert (append-only)**. Bestehende Einträge
 
 - Der Speichervorgang überträgt die nativen Messkoordinaten vom Browser an Flask.
 - Punkte, Messlinien und Abstandstexte werden serverseitig in den aufgenommenen Frame gezeichnet, bevor die Bilddatei geschrieben wird.
+
+## 2026-09-21 — Separate UVC-Startdateien für Ubuntu und Windows 11
+
+- Zwei getrennte Startdateien ergänzt: `app_ubuntu.py` verwendet für UVC-USB-Kameras die in Ubuntu integrierte Video4Linux2-Schnittstelle, `app_windows11.py` lässt OpenCV unter Windows 11 den verfügbaren integrierten UVC-Backend (Media Foundation oder DirectShow) auswählen.
+- Beide Varianten verwenden die gemeinsame Dashboard-Implementierung aus `app.py`; die Oberfläche und Funktionen bleiben identisch.
+- Der Ordnerdialog ist nun optional. Fehlt Tkinter oder eine grafische Sitzung, speichert die Anwendung automatisch unter `~/Downloads` beziehungsweise `%USERPROFILE%\Downloads`. Damit ist unter Ubuntu kein separates Tkinter-Paket für den Start erforderlich.
+- Gilt ausschließlich für UVC-konforme Kameras. Spezialkameras wie Allied Vision oder die Bresser MikroCam SP 5.0 benötigen weiterhin den jeweiligen Hersteller-Treiber beziehungsweise das SDK.
+
+## 2026-09-21 — Windows-11-EXE für das Kamera-Dashboard
+
+- PyInstaller-Spezifikation `app_windows11.spec` ergänzt. Sie bündelt den Windows-11-Starter, Python-Laufzeitbibliotheken, OpenCV, Flask und die Browser-Vorlage in einer Windows-Anwendung ohne sichtbares Konsolenfenster.
+- Erfolgreich erstellt: `dist\CameraDashboard-Windows11\CameraDashboard-Windows11.exe` inklusive zugehörigem `_internal`-Ordner. Für die Weitergabe muss der gesamte Ordner kopiert werden; Python und die in `requirements.txt` genannten Pakete sind auf dem Ziel-PC nicht nötig.
+- Die Bresser MikroCam SP 5.0 benötigt weiterhin den separat installierten signierten Bresser-DirectShow-Treiber. Dieser kann nicht als Bestandteil der Python-Anwendung ersetzt werden.

@@ -14,9 +14,14 @@ import webbrowser
 from datetime import datetime
 
 import cv2
-import tkinter as tk
-from tkinter import filedialog
 from flask import Flask, Response, jsonify, render_template, request
+
+try:
+    import tkinter as tk
+    from tkinter import filedialog
+except ImportError:
+    tk = None
+    filedialog = None
 
 import config
 from cameras.imaging import (
@@ -43,22 +48,40 @@ _last_heartbeat_time = None
 
 def select_save_directory() -> str:
     # HEADER: Asks where captured images should be saved.
-    print("[INFO] Waiting for the save-folder dialog...")
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes("-topmost", True)
-    root.lift()
-    root.focus_force()
-    chosen_dir = filedialog.askdirectory(
-        title="Select folder for saved images", parent=root
+    fallback_directory = os.path.join(
+        os.environ.get("USERPROFILE")
+        or os.environ.get("HOME")
+        or os.getcwd(),
+        config.DEFAULT_SAVE_SUBDIR,
     )
-    root.destroy()
+    if tk is None or filedialog is None:
+        print("[INFO] Tkinter is unavailable; using the default save folder.")
+        os.makedirs(fallback_directory, exist_ok=True)
+        return fallback_directory
+
+    print("[INFO] Waiting for the save-folder dialog...")
+    try:
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
+        root.focus_force()
+        chosen_dir = filedialog.askdirectory(
+            title="Select folder for saved images", parent=root
+        )
+        root.destroy()
+    except tk.TclError:
+        print(
+            "[INFO] Save-folder dialog is unavailable; "
+            "using the default folder."
+        )
+        os.makedirs(fallback_directory, exist_ok=True)
+        return fallback_directory
 
     if chosen_dir:
         return os.path.normpath(chosen_dir)
-    return os.path.join(
-        os.environ.get("USERPROFILE", os.getcwd()), config.DEFAULT_SAVE_SUBDIR
-    )
+    os.makedirs(fallback_directory, exist_ok=True)
+    return fallback_directory
 
 
 def sanitize_filename_label(raw_label: str) -> str:
